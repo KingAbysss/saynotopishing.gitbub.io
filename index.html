@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulação Anti-Phishing</title>
+<style>
+  :root {
+    --bg-dark:#071027;
+    --card-dark:#0f1b34;
+    --accent-dark:#ffb86b;
+    --muted-dark:#9fb0c8;
+
+    --bg-roblox:#f2f2f2;
+    --card-roblox:#ffffff;
+    --accent-roblox:#ff0000;
+    --text-roblox:#111;
+    --muted-roblox:#555;
+
+    --bg-insta:#fafafa;
+    --card-insta:#fff;
+    --accent-insta:#0095f6;
+    --text-insta:#262626;
+    --muted-insta:#8e8e8e;
+  }
+
+  body {
+    margin:0;
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    background:var(--bg-dark);
+    color:#e6f0fb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    transition:all .3s;
+    position:relative;
+  }
+
+  /* Botão de créditos pequeno */
+  #creditsBtn {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: #ffb86b;
+    color: #111;
+    border: none;
+    padding: 8px 6px; /* altura normal, largura estreita */
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 1000;
+    font-weight: bold;
+    font-size: 12px;
+    white-space: nowrap;
+    display: block; /* só mostra na página inicial */
+  }
+
+  .wrap {
+    width:960px;
+    max-width:95%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    align-items:start;
+    transition:all .3s;
+  }
+
+  .card {
+    background:var(--card-dark);
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 10px 40px rgba(0,0,0,.6);
+    transition:all .3s;
+  }
+
+  h1 { margin:0 0 6px; font-size:20px; transition:all .3s; }
+  p.small { margin:0 0 12px; color:var(--muted-dark); font-size:13px; transition:all .3s; }
+
+  .banner { background:#ff4d4d; color:#111; padding:10px; border-radius:8px; margin-bottom:12px; font-weight:700; text-align:center; }
+
+  label { display:block; margin-top:8px; font-size:13px; color:var(--muted-dark); }
+  input { width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.06); background:transparent; color:inherit; box-sizing:border-box; margin-top:6px; transition:all .3s; }
+  button { margin-top:12px; padding:10px; border-radius:8px; border:0; background:var(--accent-dark); color:#111; font-weight:700; cursor:pointer; width:100%; transition:all .3s; }
+  .result { margin-top:12px; background:rgba(255,255,255,.03); padding:10px; border-radius:8px; font-size:14px; word-break:break-word; transition:all .3s; }
+  ul.tips { padding-left:18px; margin:10px 0 0; color:var(--muted-dark); }
+  .foot { font-size:12px; color:var(--muted-dark); margin-top:10px; }
+  .big { grid-column:1 / -1; }
+  .muted-pill { display:inline-block; padding:6px 8px; border-radius:999px; background:rgba(255,255,255,.03); font-size:12px; color:var(--muted-dark); margin-right:6px; }
+
+  /* Roblox Mode */
+  .roblox-mode .wrap { grid-template-columns:1fr; justify-items:center; }
+  .roblox-mode .card {
+    background:var(--card-roblox);
+    color:var(--text-roblox);
+    width:360px;
+    padding:30px;
+    box-shadow:0 4px 20px rgba(0,0,0,.2);
+  }
+  .roblox-mode h1 { font-size:32px; font-weight:bold; text-align:center; margin-bottom:20px; }
+  .roblox-mode p.small { font-size:14px; color:var(--muted-roblox); text-align:center; }
+  .roblox-mode input { border:1px solid #ccc; background:#f9f9f9; color:#111; padding:12px; font-size:14px; border-radius:6px; }
+  .roblox-mode button[type="submit"] { background:var(--accent-roblox); color:#fff; font-weight:bold; font-size:16px; }
+  .roblox-mode .banner, .roblox-mode #switchRoblox, .roblox-mode #switchInsta, .roblox-mode label { display:none; }
+  .roblox-mode .logo { display:block; margin:0 auto 20px; width:150px; }
+  .roblox-mode #homeBtn { display:block; }
+  .roblox-mode #creditsBtn { display:none; } /* botão some nos modos */
+
+  /* Instagram Mode */
+  .insta-mode .wrap { grid-template-columns:1fr; justify-items:center; }
+  .insta-mode .card {
+    background:var(--card-insta);
+    color:var(--text-insta);
+    width:360px;
+    padding:30px;
+    box-shadow:0 4px 20px rgba(0,0,0,.2);
+  }
+  .insta-mode h1 { font-size:32px; font-weight:bold; text-align:center; margin-bottom:20px; }
+  .insta-mode p.small { font-size:14px; color:var(--muted-insta); text-align:center; }
+  .insta-mode input { border:1px solid #dbdbdb; background:#fafafa; color:#262626; padding:12px; font-size:14px; border-radius:6px; }
+  .insta-mode button[type="submit"] { background:var(--accent-insta); color:#fff; font-weight:bold; font-size:16px; }
+  .insta-mode .banner, .insta-mode #switchRoblox, .insta-mode #switchInsta, .insta-mode label { display:none; }
+  .insta-mode .logo { display:block; margin:0 auto 20px; width:150px; }
+  .insta-mode #homeBtn { display:block; }
+  .insta-mode #creditsBtn { display:none; } /* botão some nos modos */
+
+  /* Créditos card */
+  #creditsCard {
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#0f1b34;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 10px 40px rgba(0,0,0,.6);
+    max-width:400px;
+    text-align:center;
+    z-index:2000;
+    color:#e6f0fb;
+  }
+  #creditsCard h1 { margin:0 0 12px; }
+  #creditsCard p { font-size:14px; color:#9fb0c8; }
+  #closeCredits {
+    margin-top:12px;
+    padding:8px 12px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    background:#ffb86b;
+    color:#111;
+    font-weight:bold;
+  }
+</style>
+</head>
+<body>
+<button id="creditsBtn">Créditos</button>
+
+<div id="creditsCard">
+  <h1>Feito por KingAbysss</h1>
+  <p>Este site foi criado para fins educativos. Meu objetivo é mostrar como funciona phishing e ensinar boas práticas de segurança. Texto aleatório para ocupar espaço, pode mudar depois.</p>
+  <button id="closeCredits">Fechar</button>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="banner">SIMULAÇÃO EDUCATIVA — NÃO É UM SITE REAL</div>
+    <h1>Teste rápido: Login (Simulação)</h1>
+    <p class="small">Este exercício é uma demonstração para mostrar como phishing funciona. Nada aqui é enviado para ninguém — tudo permanece no seu navegador.</p>
+
+    <form id="demoForm" autocomplete="off">
+      <label for="user">Usuário</label>
+      <input id="user" name="user" type="text" placeholder="Digite qualquer coisa" required />
+      <label for="pass">Senha</label>
+      <input id="pass" name="pass" type="password" placeholder="Digite qualquer coisa" required />
+      <button type="submit">Entrar (Simulação)</button>
+    </form>
+
+    <button id="switchRoblox" style="margin-top:12px;">Modo Roblox</button>
+    <button id="switchInsta" style="margin-top:12px;">Modo Instagram</button>
+    <button id="homeBtn" style="margin-top:12px; display:none;">Página Inicial</button>
+
+    <div id="after" style="display:none">
+      <div class="result" id="show"></div>
+      <div class="foot">Lembre: isto é apenas uma simulação. Não foi enviado nada.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>Dicas rápidas contra phishing</h1>
+    <div style="margin-top:8px">
+      <span class="muted-pill">Verifique o domínio</span>
+      <span class="muted-pill">Procure HTTPS</span>
+      <span class="muted-pill">Desconfie de pressão</span>
+    </div>
+    <ul class="tips">
+      <li><strong>URL estranha:</strong> se o link não for o domínio oficial, desconfie.</li>
+      <li><strong>Erros e pedido de urgência:</strong> golpistas usam pressão (“só hoje”, “ou perde conta”).</li>
+      <li><strong>Solicitam dados sensíveis por link:</strong> sites legítimos raramente pedem senha por link de e-mail.</li>
+      <li><strong>Confirme por fonte oficial:</strong> abra o site manualmente no navegador, não clique em links suspeitos.</li>
+    </ul>
+  </div>
+
+  <div class="card big" style="text-align:center">
+    <h1>Resumo do que foi digitado</h1>
+    <p class="small">Depois que o amigo submeter, você verá os valores aqui — tudo local, nada externo.</p>
+    <div id="summary" class="result">Nenhuma tentativa ainda.</div>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('demoForm');
+const after = document.getElementById('after');
+const show = document.getElementById('show');
+const summary = document.getElementById('summary');
+const switchBtn = document.getElementById('switchRoblox');
+const switchBtnInsta = document.getElementById('switchInsta');
+const homeBtn = document.getElementById('homeBtn');
+const creditsBtn = document.getElementById('creditsBtn');
+const creditsCard = document.getElementById('creditsCard');
+const closeCredits = document.getElementById('closeCredits');
+
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  const user = document.getElementById('user').value;
+  const pass = document.getElementById('pass').value;
+
+  const escapedUser = escapeHtml(user);
+  const escapedPass = escapeHtml(pass);
+
+  show.innerHTML = '<strong>Usuário:</strong> ' + escapedUser + '<br><strong>Senha:</strong> ' + escapedPass;
+  summary.innerHTML = '<strong>Última tentativa:</strong><br>Usuário: ' + escapedUser + '<br>Senha: ' + escapedPass;
+
+  form.style.display = 'none';
+  after.style.display = 'block';
+
+  setTimeout(()=>{
+    form.reset();
+    form.style.display = '';
+    after.style.display = 'none';
+  }, 6000);
+});
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Ativa modo Roblox
+switchBtn.addEventListener('click', () => {
+  document.body.classList.remove('insta-mode');
+  document.body.classList.add('roblox-mode');
+  homeBtn.style.display = 'block';
+  creditsBtn.style.display = 'none'; // some
+  document.querySelector('h1').innerText = 'Roblox';
+  document.querySelector('.small').innerText = 'Simulação educativa do Roblox — nada é enviado.';
+  document.getElementById('user').placeholder = 'Nome de usuário, e-mail ou telefone';
+  document.getElementById('pass').placeholder = 'Senha';
+
+  if(!document.querySelector('.roblox-mode .logo')){
+    const logo = document.createElement('img');
+    logo.src = 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Roblox_Red_2017_Logo.png';
+    logo.className = 'logo';
+    const card = document.querySelector('.roblox-mode .card') || document.querySelector('.card');
+    card.insertBefore(logo, card.firstChild);
+  }
+});
+
+// Ativa modo Instagram
+switchBtnInsta.addEventListener('click', () => {
+  document.body.classList.remove('roblox-mode');
+  document.body.classList.add('insta-mode');
+  homeBtn.style.display = 'block';
+  creditsBtn.style.display = 'none'; // some
+  document.querySelector('h1').innerText = 'Instagram';
+  document.querySelector('.small').innerText = 'Simulação educativa do Instagram — nada é enviado.';
+  document.getElementById('user').placeholder = 'Celular, nome de usuário ou e-mail';
+  document.getElementById('pass').placeholder = 'Senha';
+
+  if(!document.querySelector('.insta-mode .logo')){
+    const logo = document.createElement('img');
+    logo.src = 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png';
+    logo.className = 'logo';
+    const card = document.querySelector('.insta-mode .card') || document.querySelector('.card');
+    card.insertBefore(logo, card.firstChild);
+  }
+});
+
+// Volta pro modo original
+homeBtn.addEventListener('click', () => {
+  document.body.classList.remove('roblox-mode');
+  document.body.classList.remove('insta-mode');
+  homeBtn.style.display = 'none';
+  creditsBtn.style.display = 'block'; // volta a aparecer
+  document.querySelector('h1').innerText = 'Teste rápido: Login (Simulação)';
+  document.querySelector('.small').innerText = 'Este exercício é uma demonstração para mostrar como phishing funciona. Nada aqui é enviado para ninguém — tudo permanece no seu navegador.';
+  document.getElementById('user').placeholder = 'Digite qualquer coisa';
+  document.getElementById('pass').placeholder = 'Digite qualquer coisa';
+  const logos = document.querySelectorAll('.logo');
+  logos.forEach(l => l.remove());
+});
+
+// Abrir créditos
+creditsBtn.addEventListener('click', () => {
+  creditsCard.style.display = 'block';
+});
+
+// Fechar créditos
+closeCredits.addEventListener('click', () => {
+  creditsCard.style.display = 'none';
+});
+</script>
+</body>
+</html>
